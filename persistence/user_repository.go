@@ -8,8 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// TODO: Need to create an interface for UserRepo
-
 const userCollection = "user"
 
 type UserRepository struct {
@@ -20,7 +18,7 @@ func NewUserRepo(db *mongo.Database) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) FindById(id string) models.User {
+func (r *UserRepository) FindByID(id string) models.User {
 	filter := bson.D{{"_id", id}}
 
 	var result models.User
@@ -38,7 +36,7 @@ func (r *UserRepository) FindById(id string) models.User {
 	return result
 }
 
-func (r *UserRepository) Insert(user models.User) {
+func (r *UserRepository) AddUser(user models.User) {
 	_, err := r.db.Collection(userCollection).InsertOne(context.TODO(), user)
 
 	// TODO: Handle error properly

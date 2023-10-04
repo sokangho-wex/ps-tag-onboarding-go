@@ -3,23 +3,27 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/services"
 	"net/http"
 )
 
-type UserHandler struct {
-	userService *services.UserService
+type userRepo interface {
+	FindByID(id string) models.User
+	AddUser(user models.User)
 }
 
-func NewUserHandler(userService *services.UserService) *UserHandler {
-	return &UserHandler{userService: userService}
+type UserHandler struct {
+	userRepo userRepo
+}
+
+func NewUserHandler(repo userRepo) *UserHandler {
+	return &UserHandler{userRepo: repo}
 }
 
 func (h *UserHandler) FindUser(c *gin.Context) {
 	id := c.Param("id")
 
 	// TODO: Handle error when user is not found
-	user := h.userService.FindById(id)
+	user := h.userRepo.FindByID(id)
 
 	c.JSON(http.StatusOK, user)
 }
@@ -34,8 +38,10 @@ func (h *UserHandler) SaveUser(c *gin.Context) {
 		return
 	}
 
+	// TODO: Add validation logic
+
 	// TODO: Handle error when insertion fails
-	h.userService.Insert(user)
+	h.userRepo.AddUser(user)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Created",
