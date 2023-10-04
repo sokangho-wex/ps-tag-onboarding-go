@@ -28,6 +28,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(userRepo)
 
 	router := gin.Default()
+	router.Use(handlers.ErrorHandler())
 	router.GET("/find/:id", userHandler.FindUser)
 	router.POST("/save", userHandler.SaveUser)
 

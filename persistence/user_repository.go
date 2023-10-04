@@ -18,29 +18,29 @@ func NewUserRepo(db *mongo.Database) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) FindByID(id string) models.User {
+func (r *UserRepository) FindByID(id string) (models.User, error) {
 	filter := bson.D{{"_id", id}}
 
 	var result models.User
 	err := r.db.Collection(userCollection).FindOne(context.TODO(), filter).Decode(&result)
 
-	// TODO: Handle error properly
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			panic(err)
+			return models.User{}, models.UserNotFoundError
 		} else {
-			panic(err)
+			return models.User{}, models.UnexpectedError
 		}
 	}
 
-	return result
+	return result, nil
 }
 
-func (r *UserRepository) AddUser(user models.User) {
+func (r *UserRepository) AddUser(user models.User) error {
 	_, err := r.db.Collection(userCollection).InsertOne(context.TODO(), user)
 
-	// TODO: Handle error properly
 	if err != nil {
-		panic(err)
+		return models.UnexpectedError
 	}
+
+	return nil
 }
