@@ -9,7 +9,7 @@ import (
 
 type userRepo interface {
 	FindByID(id string) (models.User, error)
-	AddUser(user models.User) error
+	SaveUser(user models.User) error
 }
 
 type validator interface {
@@ -51,12 +51,12 @@ func (h *UserHandler) SaveUser(c *gin.Context) {
 		return
 	}
 
-	if err := h.userRepo.AddUser(user); err != nil {
+	if err := h.userRepo.SaveUser(user); err != nil {
 		_ = c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Created",
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Saved",
 	})
 }
