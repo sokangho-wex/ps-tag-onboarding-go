@@ -20,11 +20,11 @@ func NewUserRepo(db *mongo.Database) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) FindByID(id string) (models.User, error) {
+func (r *UserRepository) FindByID(ctx context.Context, id string) (models.User, error) {
 	filter := bson.D{{"_id", id}}
 
 	var result models.User
-	err := r.db.Collection(userCollection).FindOne(context.TODO(), filter).Decode(&result)
+	err := r.db.Collection(userCollection).FindOne(ctx, filter).Decode(&result)
 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -37,12 +37,12 @@ func (r *UserRepository) FindByID(id string) (models.User, error) {
 	return result, nil
 }
 
-func (r *UserRepository) SaveUser(user models.User) error {
+func (r *UserRepository) SaveUser(ctx context.Context, user models.User) error {
 	filter := bson.D{{"_id", user.ID}}
 	update := bson.D{{"$set", bson.D{{"first_name", user.FirstName}, {"last_name", user.LastName}, {"email", user.Email}, {"age", user.Age}}}}
 	opts := options.Update().SetUpsert(true)
 
-	_, err := r.db.Collection(userCollection).UpdateOne(context.TODO(), filter, update, opts)
+	_, err := r.db.Collection(userCollection).UpdateOne(ctx, filter, update, opts)
 
 	if err != nil {
 		return errs.NewUnexpectedError(err)
@@ -51,10 +51,10 @@ func (r *UserRepository) SaveUser(user models.User) error {
 	return nil
 }
 
-func (r *UserRepository) ExistsByFirstNameAndLastName(firstName, lastName string) (bool, error) {
+func (r *UserRepository) ExistsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) (bool, error) {
 	filter := bson.D{{"first_name", firstName}, {"last_name", lastName}}
 
-	count, err := r.db.Collection(userCollection).CountDocuments(context.TODO(), filter)
+	count, err := r.db.Collection(userCollection).CountDocuments(ctx, filter)
 	if err != nil {
 		return false, errs.NewUnexpectedError(err)
 	}

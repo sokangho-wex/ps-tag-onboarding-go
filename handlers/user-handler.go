@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/models/errs"
@@ -8,12 +9,12 @@ import (
 )
 
 type userRepo interface {
-	FindByID(id string) (models.User, error)
-	SaveUser(user models.User) error
+	FindByID(ctx context.Context, id string) (models.User, error)
+	SaveUser(ctx context.Context, user models.User) error
 }
 
 type validator interface {
-	Validate(user models.User) error
+	Validate(ctx context.Context, user models.User) error
 }
 
 type UserHandler struct {
@@ -28,7 +29,7 @@ func NewUserHandler(repo userRepo, validator validator) *UserHandler {
 func (h *UserHandler) FindUser(c *gin.Context) {
 	id := c.Param("id")
 
-	user, err := h.userRepo.FindByID(id)
+	user, err := h.userRepo.FindByID(c, id)
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -46,12 +47,12 @@ func (h *UserHandler) SaveUser(c *gin.Context) {
 		return
 	}
 
-	if err := h.validator.Validate(user); err != nil {
+	if err := h.validator.Validate(c, user); err != nil {
 		_ = c.Error(err)
 		return
 	}
 
-	if err := h.userRepo.SaveUser(user); err != nil {
+	if err := h.userRepo.SaveUser(c, user); err != nil {
 		_ = c.Error(err)
 		return
 	}
