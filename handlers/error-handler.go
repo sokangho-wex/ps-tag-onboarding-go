@@ -3,9 +3,14 @@ package handlers
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/models/errs"
 	"net/http"
 )
+
+type errorResponse struct {
+	Error   string   `json:"error"`
+	Details []string `json:"details,omitempty"`
+}
 
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -17,13 +22,36 @@ func ErrorHandler() gin.HandlerFunc {
 
 		err := c.Errors.Last().Err
 
+		var (
+			badRequestError     *errs.BadRequestError
+			userNotFoundError   *errs.NotFoundError
+			userValidationError *errs.ValidationError
+		)
+
 		switch {
-		case errors.Is(err, models.BadRequestError):
-			c.JSON(http.StatusBadRequest, models.BadRequestError.Error())
-		case errors.Is(err, models.UserNotFoundError):
-			c.JSON(http.StatusNotFound, models.UserNotFoundError.Error())
+		case errors.As(err, &badRequestError):
+			c.JSON(
+				http.StatusBadRequest,
+				errorResponse{Error: badRequestError.Message},
+			)
+		case errors.As(err, &userNotFoundError):
+			c.JSON(
+				http.StatusNotFound,
+				errorResponse{Error: userNotFoundError.Message},
+			)
+		case errors.As(err, &userValidationError):
+			c.JSON(
+				http.StatusBadRequest,
+				errorResponse{
+					Error:   userValidationError.Message,
+					Details: userValidationError.Details,
+				},
+			)
 		default:
-			c.JSON(http.StatusInternalServerError, models.UnexpectedError.Error())
+			c.JSON(
+				http.StatusInternalServerError,
+				errorResponse{Error: errs.ErrorUnexpected},
+			)
 		}
 	}
 }

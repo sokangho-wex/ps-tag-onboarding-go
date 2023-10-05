@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/models/errs"
 	"net/http"
 )
 
@@ -11,12 +12,17 @@ type userRepo interface {
 	AddUser(user models.User) error
 }
 
-type UserHandler struct {
-	userRepo userRepo
+type validator interface {
+	Validate(user models.User) error
 }
 
-func NewUserHandler(repo userRepo) *UserHandler {
-	return &UserHandler{userRepo: repo}
+type UserHandler struct {
+	userRepo  userRepo
+	validator validator
+}
+
+func NewUserHandler(repo userRepo, validator validator) *UserHandler {
+	return &UserHandler{userRepo: repo, validator: validator}
 }
 
 func (h *UserHandler) FindUser(c *gin.Context) {
@@ -35,15 +41,17 @@ func (h *UserHandler) SaveUser(c *gin.Context) {
 	var user models.User
 
 	if err := c.BindJSON(&user); err != nil {
-		err = models.BadRequestError
+		err = errs.NewBadRequestError()
 		_ = c.Error(err)
 		return
 	}
 
-	// TODO: Add validation logic
+	if err := h.validator.Validate(user); err != nil {
+		_ = c.Error(err)
+		return
+	}
 
-	err := h.userRepo.AddUser(user)
-	if err != nil {
+	if err := h.userRepo.AddUser(user); err != nil {
 		_ = c.Error(err)
 		return
 	}

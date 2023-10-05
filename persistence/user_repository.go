@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/models/errs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -26,9 +27,9 @@ func (r *UserRepository) FindByID(id string) (models.User, error) {
 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return models.User{}, models.UserNotFoundError
+			return models.User{}, errs.NewNotFoundError()
 		} else {
-			return models.User{}, models.UnexpectedError
+			return models.User{}, errs.NewUnexpectedError()
 		}
 	}
 
@@ -39,8 +40,18 @@ func (r *UserRepository) AddUser(user models.User) error {
 	_, err := r.db.Collection(userCollection).InsertOne(context.TODO(), user)
 
 	if err != nil {
-		return models.UnexpectedError
+		return errs.NewUnexpectedError()
 	}
 
 	return nil
+}
+
+func (r *UserRepository) ExistsByFirstNameAndLastName(firstName, lastName string) bool {
+	filter := bson.D{{"first_name", firstName}, {"last_name", lastName}}
+
+	if result := r.db.Collection(userCollection).FindOne(context.TODO(), filter); result != nil {
+		return true
+	}
+
+	return false
 }
