@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/handlers"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/handlers/validators"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/persistence"
+	handlers2 "github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/validators"
+	persistence2 "github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
 	"log"
 	"os"
 )
@@ -20,17 +20,17 @@ func main() {
 		uri = "mongodb://root:password@localhost:27017"
 	}
 
-	mongoClient := persistence.NewMongoClient(uri)
+	mongoClient := persistence2.NewMongoClient(uri)
 	db := mongoClient.NewMongoDB()
 	defer mongoClient.DisconnectMongoDB()
 
 	// TODO: Find a better way to do dependency injection
-	userRepo := persistence.NewUserRepo(db)
+	userRepo := persistence2.NewUserRepo(db)
 	userValidator := validators.NewUserValidator(userRepo)
-	userHandler := handlers.NewUserHandler(userRepo, userValidator)
+	userHandler := handlers2.NewUserHandler(userRepo, userValidator)
 
 	router := gin.Default()
-	router.Use(handlers.ErrorHandler())
+	router.Use(handlers2.ErrorHandler())
 	router.GET("/find/:id", userHandler.FindUser)
 	router.POST("/save", userHandler.SaveUser)
 
