@@ -7,12 +7,14 @@ import (
 )
 
 type userRepo interface {
-	ExistsByFirstNameAndLastName(firstName string, lastName string) bool
+	ExistsByFirstNameAndLastName(firstName string, lastName string) (bool, error)
 }
 
 type UserValidator struct {
 	userRepo userRepo
 }
+
+type validateTask func(u models.User, errch chan<- string, dch chan<- struct{})
 
 func NewUserValidator(repo userRepo) *UserValidator {
 	return &UserValidator{userRepo: repo}
@@ -21,17 +23,27 @@ func NewUserValidator(repo userRepo) *UserValidator {
 func (v *UserValidator) Validate(user models.User) error {
 	var errorDetails []string
 
-	// TODO: Refactor to perform validation in goroutines for performance improvement
-	if success, errorMessage := v.validateName(user); success == false {
-		errorDetails = append(errorDetails, errorMessage)
+	errch := make(chan string)
+	dch := make(chan struct{})
+	validateTasks := []validateTask{v.validateName, v.validateEmail, v.validateAge}
+
+	for _, task := range validateTasks {
+		go task(user, errch, dch)
 	}
 
-	if success, errorMessage := v.validateEmail(user); success == false {
-		errorDetails = append(errorDetails, errorMessage)
-	}
+	dCounter := 0
 
-	if success, errorMessage := v.validateAge(user); success == false {
-		errorDetails = append(errorDetails, errorMessage)
+done:
+	for {
+		select {
+		case err := <-errch:
+			errorDetails = append(errorDetails, err)
+		case <-dch:
+			dCounter++
+			if dCounter == len(validateTasks) {
+				break done
+			}
+		}
 	}
 
 	if len(errorDetails) > 0 {
@@ -41,33 +53,34 @@ func (v *UserValidator) Validate(user models.User) error {
 	return nil
 }
 
-func (v *UserValidator) validateAge(u models.User) (bool, string) {
+func (v *UserValidator) validateAge(u models.User, errch chan<- string, dch chan<- struct{}) {
 	if u.Age < 18 {
-		return false, errs.ErrorAgeMinimum
+		errch <- errs.ErrorAgeMinimum
 	}
-	return true, ""
+	dch <- struct{}{}
 }
 
-func (v *UserValidator) validateEmail(u models.User) (bool, string) {
+func (v *UserValidator) validateEmail(u models.User, errch chan<- string, dch chan<- struct{}) {
 	if u.Email == "" {
-		return false, errs.ErrorEmailRequired
+		errch <- errs.ErrorEmailRequired
+	} else if strings.Contains(u.Email, "@") == false {
+		errch <- errs.ErrorEmailFormat
 	}
 
-	if strings.Contains(u.Email, "@") == false {
-		return false, errs.ErrorEmailFormat
-	}
-
-	return true, ""
+	dch <- struct{}{}
 }
 
-func (v *UserValidator) validateName(u models.User) (bool, string) {
+func (v *UserValidator) validateName(u models.User, errch chan<- string, dch chan<- struct{}) {
 	if u.FirstName == "" || u.LastName == "" {
-		return false, errs.ErrorNameRequired
+		errch <- errs.ErrorNameRequired
+	} else {
+		exist, err := v.userRepo.ExistsByFirstNameAndLastName(u.FirstName, u.LastName)
+		if err != nil {
+			errch <- errs.ErrorUnexpected
+		} else if exist {
+			errch <- errs.ErrorNameUnique
+		}
 	}
 
-	if v.userRepo.ExistsByFirstNameAndLastName(u.FirstName, u.LastName) {
-		return false, errs.ErrorNameUnique
-	}
-
-	return true, ""
+	dch <- struct{}{}
 }

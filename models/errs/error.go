@@ -1,5 +1,7 @@
 package errs
 
+import "fmt"
+
 var (
 	ErrorAgeMinimum       = "User does not meet minimum age requirement"
 	ErrorEmailFormat      = "User email must be properly formatted"
@@ -51,12 +53,13 @@ func (e ValidationError) Error() string {
 
 type UnexpectedError struct {
 	Message string
+	Err     error
 }
 
-func NewUnexpectedError() *UnexpectedError {
-	return &UnexpectedError{Message: ErrorUnexpected}
+func NewUnexpectedError(err error) *UnexpectedError {
+	return &UnexpectedError{Message: ErrorUnexpected, Err: err}
 }
 
 func (e UnexpectedError) Error() string {
-	return e.Message
+	return fmt.Sprintf("%s: %s", e.Message, e.Err.Error())
 }
