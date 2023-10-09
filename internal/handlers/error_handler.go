@@ -3,14 +3,10 @@ package handlers
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models/errs"
 	"net/http"
 )
-
-type errorResponse struct {
-	Error   string   `json:"error"`
-	Details []string `json:"details,omitempty"`
-}
 
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -32,25 +28,25 @@ func ErrorHandler() gin.HandlerFunc {
 		case errors.As(err, &badRequestError):
 			c.JSON(
 				http.StatusBadRequest,
-				errorResponse{Error: badRequestError.Message},
-			)
-		case errors.As(err, &userNotFoundError):
-			c.JSON(
-				http.StatusNotFound,
-				errorResponse{Error: userNotFoundError.Message},
+				models.ErrorResponse{Error: badRequestError.Message},
 			)
 		case errors.As(err, &userValidationError):
 			c.JSON(
 				http.StatusBadRequest,
-				errorResponse{
+				models.ErrorResponse{
 					Error:   userValidationError.Message,
 					Details: userValidationError.Details,
 				},
 			)
+		case errors.As(err, &userNotFoundError):
+			c.JSON(
+				http.StatusNotFound,
+				models.ErrorResponse{Error: userNotFoundError.Message},
+			)
 		default:
 			c.JSON(
 				http.StatusInternalServerError,
-				errorResponse{Error: errs.ErrorUnexpected},
+				models.ErrorResponse{Error: errs.ErrorUnexpected},
 			)
 		}
 	}
