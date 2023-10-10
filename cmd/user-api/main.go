@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	// TODO: Move "getting config values" code to a separate method or file
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "8080"
@@ -24,7 +23,6 @@ func main() {
 	db := mongoClient.NewMongoDB()
 	defer mongoClient.DisconnectMongoDB()
 
-	// TODO: Find a better way to do dependency injection
 	userRepo := persistence.NewUserRepo(db)
 	userValidator := validators.NewUserValidator(userRepo)
 	userHandler := handlers.NewUserHandler(userRepo, userValidator)
