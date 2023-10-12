@@ -10,8 +10,4 @@ RUN go test -v ./...
 
 RUN CGO_ENABLED=0 GOOS=linux go build -C cmd/user-api/ -o /app/main
 
-FROM scratch
-
-COPY --from=builder /app/main /app/main
-
 CMD ["/app/main"]
