@@ -57,7 +57,5 @@ func (h *UserHandler) SaveUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Saved",
-	})
+	c.JSON(http.StatusCreated, user)
 }

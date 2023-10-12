@@ -19,6 +19,10 @@ func NewMongoClient(uri string) *MongoClient {
 		panic(err)
 	}
 
+	if err = client.Ping(ctx, nil); err != nil {
+		panic(err)
+	}
+
 	return &MongoClient{client: client}
 }
 
