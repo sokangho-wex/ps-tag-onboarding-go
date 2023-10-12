@@ -1,29 +1,39 @@
 package handlers
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/models/errs"
 	"net/http"
 )
 
 type userRepo interface {
-	FindByID(id string) models.User
-	AddUser(user models.User)
+	FindByID(ctx context.Context, id string) (models.User, error)
+	SaveUser(ctx context.Context, user models.User) error
+}
+
+type validator interface {
+	Validate(ctx context.Context, user models.User) error
 }
 
 type UserHandler struct {
-	userRepo userRepo
+	userRepo  userRepo
+	validator validator
 }
 
-func NewUserHandler(repo userRepo) *UserHandler {
-	return &UserHandler{userRepo: repo}
+func NewUserHandler(repo userRepo, validator validator) *UserHandler {
+	return &UserHandler{userRepo: repo, validator: validator}
 }
 
 func (h *UserHandler) FindUser(c *gin.Context) {
 	id := c.Param("id")
 
-	// TODO: Handle error when user is not found
-	user := h.userRepo.FindByID(id)
+	user, err := h.userRepo.FindByID(c, id)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, user)
 }
@@ -32,18 +42,22 @@ func (h *UserHandler) SaveUser(c *gin.Context) {
 	var user models.User
 
 	if err := c.BindJSON(&user); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"message": "Bad Request",
-		})
+		err = errs.NewBadRequestError()
+		_ = c.Error(err)
 		return
 	}
 
-	// TODO: Add validation logic
+	if err := h.validator.Validate(c, user); err != nil {
+		_ = c.Error(err)
+		return
+	}
 
-	// TODO: Handle error when insertion fails
-	h.userRepo.AddUser(user)
+	if err := h.userRepo.SaveUser(c, user); err != nil {
+		_ = c.Error(err)
+		return
+	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Created",
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Saved",
 	})
 }

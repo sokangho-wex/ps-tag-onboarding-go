@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/handlers"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/handlers/validators"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/persistence"
 	"log"
 	"os"
@@ -25,9 +26,11 @@ func main() {
 
 	// TODO: Find a better way to do dependency injection
 	userRepo := persistence.NewUserRepo(db)
-	userHandler := handlers.NewUserHandler(userRepo)
+	userValidator := validators.NewUserValidator(userRepo)
+	userHandler := handlers.NewUserHandler(userRepo, userValidator)
 
 	router := gin.Default()
+	router.Use(handlers.ErrorHandler())
 	router.GET("/find/:id", userHandler.FindUser)
 	router.POST("/save", userHandler.SaveUser)
 

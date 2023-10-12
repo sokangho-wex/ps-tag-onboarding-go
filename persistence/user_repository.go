@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/models/errs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const userCollection = "user"
@@ -18,29 +20,48 @@ func NewUserRepo(db *mongo.Database) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) FindByID(id string) models.User {
+func (r *UserRepository) FindByID(ctx context.Context, id string) (models.User, error) {
 	filter := bson.D{{"_id", id}}
 
 	var result models.User
-	err := r.db.Collection(userCollection).FindOne(context.TODO(), filter).Decode(&result)
+	err := r.db.Collection(userCollection).FindOne(ctx, filter).Decode(&result)
 
-	// TODO: Handle error properly
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			panic(err)
+			return models.User{}, errs.NewNotFoundError()
 		} else {
-			panic(err)
+			return models.User{}, errs.NewUnexpectedError(err)
 		}
 	}
 
-	return result
+	return result, nil
 }
 
-func (r *UserRepository) AddUser(user models.User) {
-	_, err := r.db.Collection(userCollection).InsertOne(context.TODO(), user)
+func (r *UserRepository) SaveUser(ctx context.Context, user models.User) error {
+	filter := bson.D{{"_id", user.ID}}
+	update := bson.D{{"$set", bson.D{{"first_name", user.FirstName}, {"last_name", user.LastName}, {"email", user.Email}, {"age", user.Age}}}}
+	opts := options.Update().SetUpsert(true)
 
-	// TODO: Handle error properly
+	_, err := r.db.Collection(userCollection).UpdateOne(ctx, filter, update, opts)
+
 	if err != nil {
-		panic(err)
+		return errs.NewUnexpectedError(err)
 	}
+
+	return nil
+}
+
+func (r *UserRepository) ExistsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) (bool, error) {
+	filter := bson.D{{"first_name", firstName}, {"last_name", lastName}}
+
+	count, err := r.db.Collection(userCollection).CountDocuments(ctx, filter)
+	if err != nil {
+		return false, errs.NewUnexpectedError(err)
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
