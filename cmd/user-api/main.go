@@ -2,15 +2,14 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/handlers"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/handlers/validators"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/persistence"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/validators"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
 	"log"
 	"os"
 )
 
 func main() {
-	// TODO: Move "getting config values" code to a separate method or file
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "8080"
@@ -24,7 +23,6 @@ func main() {
 	db := mongoClient.NewMongoDB()
 	defer mongoClient.DisconnectMongoDB()
 
-	// TODO: Find a better way to do dependency injection
 	userRepo := persistence.NewUserRepo(db)
 	userValidator := validators.NewUserValidator(userRepo)
 	userHandler := handlers.NewUserHandler(userRepo, userValidator)

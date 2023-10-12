@@ -3,8 +3,8 @@ package persistence
 import (
 	"context"
 	"errors"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/models/errs"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models/errs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

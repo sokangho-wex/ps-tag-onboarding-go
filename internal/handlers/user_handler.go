@@ -3,8 +3,8 @@ package handlers
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/models/errs"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models/errs"
 	"net/http"
 )
 
@@ -57,7 +57,5 @@ func (h *UserHandler) SaveUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Saved",
-	})
+	c.JSON(http.StatusCreated, user)
 }

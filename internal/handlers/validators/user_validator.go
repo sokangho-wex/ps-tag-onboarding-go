@@ -2,8 +2,8 @@ package validators
 
 import (
 	"context"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/models"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/models/errs"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models/errs"
 	"strings"
 )
 
