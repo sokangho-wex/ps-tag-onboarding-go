@@ -12,11 +12,11 @@ import (
 func main() {
 	port := os.Getenv("APP_PORT")
 	if port == "" {
-		port = "8080"
+		log.Fatal("App unable to start, APP_PORT environment variable is not set")
 	}
 	uri := os.Getenv("MONGO_CONNECTION_STRING")
 	if uri == "" {
-		uri = "mongodb://root:password@localhost:27017"
+		log.Fatal("App unable to start, MONGO_CONNECTION_STRING environment variable is not set")
 	}
 
 	mongoClient := persistence.NewMongoClient(uri)
