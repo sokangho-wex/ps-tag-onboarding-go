@@ -6,8 +6,6 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/onboardingerrors"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/validators"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"net/http"
@@ -19,15 +17,15 @@ import (
 type UserHandlerTestSuite struct {
 	suite.Suite
 	ctx       context.Context
-	userRepo  *persistence.UserRepoMock
-	validator *validators.UserValidatorMock
+	userRepo  *UserRepoMock
+	validator *UserValidatorMock
 	service   *UserHandler
 }
 
 func (s *UserHandlerTestSuite) SetupTest() {
 	s.ctx = context.TODO()
-	s.userRepo = &persistence.UserRepoMock{}
-	s.validator = &validators.UserValidatorMock{}
+	s.userRepo = &UserRepoMock{}
+	s.validator = &UserValidatorMock{}
 	s.service = NewUserHandler(s.userRepo, s.validator)
 }
 
