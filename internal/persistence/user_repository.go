@@ -39,7 +39,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id string) (models.User, 
 
 func (r *UserRepository) SaveUser(ctx context.Context, user models.User) error {
 	filter := bson.D{{"_id", user.ID}}
-	update := bson.D{{"$set", bson.D{{"first_name", user.FirstName}, {"last_name", user.LastName}, {"email", user.Email}, {"age", user.Age}}}}
+	update := bson.D{{"$set", bson.D{{"firstname", user.FirstName}, {"lastname", user.LastName}, {"email", user.Email}, {"age", user.Age}}}}
 	opts := options.Update().SetUpsert(true)
 
 	_, err := r.db.Collection(userCollection).UpdateOne(ctx, filter, update, opts)
@@ -52,7 +52,7 @@ func (r *UserRepository) SaveUser(ctx context.Context, user models.User) error {
 }
 
 func (r *UserRepository) ExistsByFirstNameAndLastName(ctx context.Context, firstName, lastName string) (bool, error) {
-	filter := bson.D{{"first_name", firstName}, {"last_name", lastName}}
+	filter := bson.D{{"firstname", firstName}, {"lastname", lastName}}
 
 	count, err := r.db.Collection(userCollection).CountDocuments(ctx, filter)
 	if err != nil {
