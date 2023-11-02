@@ -13,7 +13,7 @@ import (
 )
 
 func TestErrorHandler_WhenGivenAnErrorType_ReturnsCorrectStatusCodeAndMessage(t *testing.T) {
-	var testCases = []struct {
+	testCases := []struct {
 		name       string
 		error      error
 		statusCode int

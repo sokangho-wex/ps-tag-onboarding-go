@@ -28,7 +28,7 @@ func TestUserValidator(t *testing.T) {
 }
 
 func (s *UserValidatorTestSuite) TestValidate_WhenNameIsUnique() {
-	var testCases = []struct {
+	testCases := []struct {
 		name     string
 		input    models.User
 		expected error
