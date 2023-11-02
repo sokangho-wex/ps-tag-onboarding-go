@@ -2,7 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/onboardingerrors"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/users"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/validators"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
 	"log"
@@ -25,10 +26,10 @@ func main() {
 
 	userRepo := persistence.NewUserRepo(db)
 	userValidator := validators.NewUserValidator(userRepo)
-	userHandler := handlers.NewUserHandler(userRepo, userValidator)
+	userHandler := users.NewUserHandler(userRepo, userValidator)
 
 	router := gin.Default()
-	router.Use(handlers.ErrorHandler())
+	router.Use(onboardingerrors.ErrorHandler())
 	router.GET("/find/:id", userHandler.FindUser)
 	router.POST("/save", userHandler.SaveUser)
 

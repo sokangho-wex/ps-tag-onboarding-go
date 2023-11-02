@@ -1,13 +1,12 @@
-package handlers
+package users
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/onboardingerrors"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/validators"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models/errs"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -42,11 +41,11 @@ func (s *UserHandlerTestSuite) TestFindUser_WhenUserFound() {
 	ctx.Request = httptest.NewRequest("GET", "/find", nil)
 	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 
-	user := models.NewUser("1", "John", "Doe", "john.doe@test.com", 18)
+	user := NewUser("1", "John", "Doe", "john.doe@test.com", 18)
 	s.userRepo.On("FindByID", ctx, "1").Return(user, nil)
 
 	s.service.FindUser(ctx)
-	var actualUser models.User
+	var actualUser User
 
 	assert.Equal(s.T(), http.StatusOK, response.Code)
 	assert.NoError(s.T(), json.Unmarshal(response.Body.Bytes(), &actualUser))
@@ -59,8 +58,8 @@ func (s *UserHandlerTestSuite) TestFindUser_WhenUserNotFound() {
 	ctx.Request = httptest.NewRequest("GET", "/find", nil)
 	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 
-	err := errs.NewNotFoundError()
-	s.userRepo.On("FindByID", ctx, "1").Return(models.User{}, err)
+	err := onboardingerrors.NewNotFoundError()
+	s.userRepo.On("FindByID", ctx, "1").Return(User{}, err)
 
 	s.service.FindUser(ctx)
 
@@ -70,7 +69,7 @@ func (s *UserHandlerTestSuite) TestFindUser_WhenUserNotFound() {
 func (s *UserHandlerTestSuite) TestSaveUser_WhenSuccessful() {
 	response := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(response)
-	user := models.NewUser("1", "John", "Doe", "john.doe@example.com", 18)
+	user := NewUser("1", "John", "Doe", "john.doe@example.com", 18)
 	body, _ := json.Marshal(user)
 	ctx.Request = httptest.NewRequest("POST", "/save", strings.NewReader(string(body)))
 
@@ -90,9 +89,9 @@ func (s *UserHandlerTestSuite) TestSaveUser_WhenRequestBodyIsInvalid() {
 	body := `{"id":"1","first_name123":"John","last_name213":"Doe","email123":"",age:""`
 	ctx.Request = httptest.NewRequest("POST", "/save", strings.NewReader(body))
 
-	err := errs.NewBadRequestError()
-	s.validator.On("Validate", ctx, models.User{}).Return(nil)
-	s.userRepo.On("SaveUser", ctx, models.User{}).Return(nil)
+	err := onboardingerrors.NewBadRequestError()
+	s.validator.On("Validate", ctx, User{}).Return(nil)
+	s.userRepo.On("SaveUser", ctx, User{}).Return(nil)
 
 	s.service.SaveUser(ctx)
 
@@ -108,15 +107,15 @@ func (s *UserHandlerTestSuite) TestSaveUser_WhenSomethingFails() {
 	}{
 		{
 			name:           "should append ValidationError to the context when validator fails",
-			validatorError: errs.NewValidationError([]string{errs.ErrorEmailFormat, errs.ErrorAgeMinimum}),
+			validatorError: onboardingerrors.NewValidationError([]string{onboardingerrors.ErrorEmailFormat, onboardingerrors.ErrorAgeMinimum}),
 			repoError:      nil,
-			expected:       errs.NewValidationError([]string{errs.ErrorEmailFormat, errs.ErrorAgeMinimum}),
+			expected:       onboardingerrors.NewValidationError([]string{onboardingerrors.ErrorEmailFormat, onboardingerrors.ErrorAgeMinimum}),
 		},
 		{
 			name:           "should append UnexpectedError to the context when repo fails",
 			validatorError: nil,
-			repoError:      errs.NewUnexpectedError(errors.New("something is wrong")),
-			expected:       errs.NewUnexpectedError(errors.New("something is wrong")),
+			repoError:      onboardingerrors.NewUnexpectedError(errors.New("something is wrong")),
+			expected:       onboardingerrors.NewUnexpectedError(errors.New("something is wrong")),
 		},
 	}
 
@@ -124,7 +123,7 @@ func (s *UserHandlerTestSuite) TestSaveUser_WhenSomethingFails() {
 		s.Run(tc.name, func() {
 			response := httptest.NewRecorder()
 			ctx, _ := gin.CreateTestContext(response)
-			user := models.NewUser("1", "John", "Doe", "john.doe@example.com", 18)
+			user := NewUser("1", "John", "Doe", "john.doe@example.com", 18)
 			body, _ := json.Marshal(user)
 			ctx.Request = httptest.NewRequest("POST", "/save", strings.NewReader(string(body)))
 

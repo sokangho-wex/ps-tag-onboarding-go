@@ -1,4 +1,4 @@
-package errs
+package onboardingerrors
 
 import "fmt"
 

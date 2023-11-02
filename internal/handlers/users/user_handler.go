@@ -1,20 +1,19 @@
-package handlers
+package users
 
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models/errs"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/onboardingerrors"
 	"net/http"
 )
 
 type userRepo interface {
-	FindByID(ctx context.Context, id string) (models.User, error)
-	SaveUser(ctx context.Context, user models.User) error
+	FindByID(ctx context.Context, id string) (User, error)
+	SaveUser(ctx context.Context, user User) error
 }
 
 type validator interface {
-	Validate(ctx context.Context, user models.User) error
+	Validate(ctx context.Context, user User) error
 }
 
 type UserHandler struct {
@@ -39,10 +38,10 @@ func (h *UserHandler) FindUser(c *gin.Context) {
 }
 
 func (h *UserHandler) SaveUser(c *gin.Context) {
-	var user models.User
+	var user User
 
 	if err := c.BindJSON(&user); err != nil {
-		err = errs.NewBadRequestError()
+		err = onboardingerrors.NewBadRequestError()
 		_ = c.Error(err)
 		return
 	}
