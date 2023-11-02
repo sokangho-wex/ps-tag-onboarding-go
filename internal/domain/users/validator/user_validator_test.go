@@ -1,9 +1,10 @@
-package validators
+package validator
 
 import (
 	"context"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/onboardingerrors"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/users"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -12,13 +13,13 @@ import (
 type UserValidatorTestSuite struct {
 	suite.Suite
 	ctx      context.Context
-	userRepo *users.UserRepoMock
+	userRepo *persistence.UserRepoMock
 	service  *UserValidator
 }
 
 func (s *UserValidatorTestSuite) SetupTest() {
 	s.ctx = context.TODO()
-	s.userRepo = &users.UserRepoMock{}
+	s.userRepo = &persistence.UserRepoMock{}
 	s.service = NewUserValidator(s.userRepo)
 }
 

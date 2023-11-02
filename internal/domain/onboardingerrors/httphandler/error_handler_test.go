@@ -1,9 +1,10 @@
-package onboardingerrors
+package httphandler
 
 import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -19,27 +20,27 @@ func TestErrorHandler_WhenGivenAnErrorType_ReturnsCorrectStatusCodeAndMessage(t 
 	}{
 		{
 			name:       "should return 400 error response when getting BadRequestError",
-			error:      NewBadRequestError(),
+			error:      onboardingerrors.NewBadRequestError(),
 			statusCode: http.StatusBadRequest,
-			expected:   errorResponse{Error: ErrorBadRequest},
+			expected:   errorResponse{Error: onboardingerrors.ErrorBadRequest},
 		},
 		{
 			name:       "should return 400 error response when getting UserValidationError",
-			error:      NewValidationError([]string{ErrorEmailFormat, ErrorAgeMinimum}),
+			error:      onboardingerrors.NewValidationError([]string{onboardingerrors.ErrorEmailFormat, onboardingerrors.ErrorAgeMinimum}),
 			statusCode: http.StatusBadRequest,
-			expected:   errorResponse{Error: ErrorValidationFailed, Details: []string{ErrorEmailFormat, ErrorAgeMinimum}},
+			expected:   errorResponse{Error: onboardingerrors.ErrorValidationFailed, Details: []string{onboardingerrors.ErrorEmailFormat, onboardingerrors.ErrorAgeMinimum}},
 		},
 		{
 			name:       "should return 404 error response when getting UserNotFoundError",
-			error:      NewNotFoundError(),
+			error:      onboardingerrors.NewNotFoundError(),
 			statusCode: http.StatusNotFound,
-			expected:   errorResponse{Error: ErrorUserNotFound},
+			expected:   errorResponse{Error: onboardingerrors.ErrorUserNotFound},
 		},
 		{
 			name:       "should return 500 error response when getting UnexpectedError",
 			error:      errors.New("something unexpected"),
 			statusCode: http.StatusInternalServerError,
-			expected:   errorResponse{Error: ErrorUnexpected},
+			expected:   errorResponse{Error: onboardingerrors.ErrorUnexpected},
 		},
 	}
 

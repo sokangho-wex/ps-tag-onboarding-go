@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/onboardingerrors"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/users"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/validators"
+	errorhandler "github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors/httphandler"
+	userhandler "github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users/httphandler"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users/validator"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
 	"log"
 	"os"
@@ -25,11 +25,11 @@ func main() {
 	defer mongoClient.DisconnectMongoDB()
 
 	userRepo := persistence.NewUserRepo(db)
-	userValidator := validators.NewUserValidator(userRepo)
-	userHandler := users.NewUserHandler(userRepo, userValidator)
+	userValidator := validator.NewUserValidator(userRepo)
+	userHandler := userhandler.NewUserHandler(userRepo, userValidator)
 
 	router := gin.Default()
-	router.Use(onboardingerrors.ErrorHandler())
+	router.Use(errorhandler.ErrorHandler())
 	router.GET("/find/:id", userHandler.FindUser)
 	router.POST("/save", userHandler.SaveUser)
 

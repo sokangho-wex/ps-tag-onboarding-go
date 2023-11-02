@@ -1,11 +1,14 @@
-package users
+package httphandler
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/onboardingerrors"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users"
+	validator2 "github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users/validator"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"net/http"
@@ -17,15 +20,15 @@ import (
 type UserHandlerTestSuite struct {
 	suite.Suite
 	ctx       context.Context
-	userRepo  *UserRepoMock
-	validator *UserValidatorMock
+	userRepo  *persistence.UserRepoMock
+	validator *validator2.UserValidatorMock
 	service   *UserHandler
 }
 
 func (s *UserHandlerTestSuite) SetupTest() {
 	s.ctx = context.TODO()
-	s.userRepo = &UserRepoMock{}
-	s.validator = &UserValidatorMock{}
+	s.userRepo = &persistence.UserRepoMock{}
+	s.validator = &validator2.UserValidatorMock{}
 	s.service = NewUserHandler(s.userRepo, s.validator)
 }
 
@@ -39,11 +42,11 @@ func (s *UserHandlerTestSuite) TestFindUser_WhenUserFound() {
 	ctx.Request = httptest.NewRequest("GET", "/find", nil)
 	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 
-	user := NewUser("1", "John", "Doe", "john.doe@test.com", 18)
+	user := users.NewUser("1", "John", "Doe", "john.doe@test.com", 18)
 	s.userRepo.On("FindByID", ctx, "1").Return(user, nil)
 
 	s.service.FindUser(ctx)
-	var actualUser User
+	var actualUser users.User
 
 	assert.Equal(s.T(), http.StatusOK, response.Code)
 	assert.NoError(s.T(), json.Unmarshal(response.Body.Bytes(), &actualUser))
@@ -57,7 +60,7 @@ func (s *UserHandlerTestSuite) TestFindUser_WhenUserNotFound() {
 	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 
 	err := onboardingerrors.NewNotFoundError()
-	s.userRepo.On("FindByID", ctx, "1").Return(User{}, err)
+	s.userRepo.On("FindByID", ctx, "1").Return(users.User{}, err)
 
 	s.service.FindUser(ctx)
 
@@ -67,7 +70,7 @@ func (s *UserHandlerTestSuite) TestFindUser_WhenUserNotFound() {
 func (s *UserHandlerTestSuite) TestSaveUser_WhenSuccessful() {
 	response := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(response)
-	user := NewUser("1", "John", "Doe", "john.doe@example.com", 18)
+	user := users.NewUser("1", "John", "Doe", "john.doe@example.com", 18)
 	body, _ := json.Marshal(user)
 	ctx.Request = httptest.NewRequest("POST", "/save", strings.NewReader(string(body)))
 
@@ -88,8 +91,8 @@ func (s *UserHandlerTestSuite) TestSaveUser_WhenRequestBodyIsInvalid() {
 	ctx.Request = httptest.NewRequest("POST", "/save", strings.NewReader(body))
 
 	err := onboardingerrors.NewBadRequestError()
-	s.validator.On("Validate", ctx, User{}).Return(nil)
-	s.userRepo.On("SaveUser", ctx, User{}).Return(nil)
+	s.validator.On("Validate", ctx, users.User{}).Return(nil)
+	s.userRepo.On("SaveUser", ctx, users.User{}).Return(nil)
 
 	s.service.SaveUser(ctx)
 
@@ -121,7 +124,7 @@ func (s *UserHandlerTestSuite) TestSaveUser_WhenSomethingFails() {
 		s.Run(tc.name, func() {
 			response := httptest.NewRecorder()
 			ctx, _ := gin.CreateTestContext(response)
-			user := NewUser("1", "John", "Doe", "john.doe@example.com", 18)
+			user := users.NewUser("1", "John", "Doe", "john.doe@example.com", 18)
 			body, _ := json.Marshal(user)
 			ctx.Request = httptest.NewRequest("POST", "/save", strings.NewReader(string(body)))
 

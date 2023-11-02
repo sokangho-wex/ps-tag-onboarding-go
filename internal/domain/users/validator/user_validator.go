@@ -1,9 +1,9 @@
-package validators
+package validator
 
 import (
 	"context"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/onboardingerrors"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/users"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users"
 	"strings"
 )
 
