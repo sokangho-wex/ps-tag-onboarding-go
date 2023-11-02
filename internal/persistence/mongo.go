@@ -26,7 +26,7 @@ func NewMongoClient(uri string) *MongoClient {
 	return &MongoClient{client: client}
 }
 
-func (mc *MongoClient) NewMongoDB() *mongo.Database {
+func (mc *MongoClient) NewMongoUserDB() *mongo.Database {
 	return mc.client.Database("user")
 }
 

@@ -20,7 +20,7 @@ func main() {
 	}
 
 	mongoClient := persistence.NewMongoClient(uri)
-	db := mongoClient.NewMongoDB()
+	db := mongoClient.NewMongoUserDB()
 	defer mongoClient.DisconnectMongoDB()
 
 	userRepo := persistence.NewUserRepo(db)
