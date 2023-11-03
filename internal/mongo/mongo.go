@@ -1,4 +1,4 @@
-package persistence
+package mongo
 
 import (
 	"context"
@@ -6,11 +6,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type MongoClient struct {
+type Client struct {
 	client *mongo.Client
 }
 
-func NewMongoClient(uri string) *MongoClient {
+func NewClient(uri string) *Client {
 	ctx := context.Background()
 	opts := options.Client().ApplyURI(uri)
 
@@ -23,14 +23,14 @@ func NewMongoClient(uri string) *MongoClient {
 		panic(err)
 	}
 
-	return &MongoClient{client: client}
+	return &Client{client: client}
 }
 
-func (mc *MongoClient) NewMongoUserDB() *mongo.Database {
-	return mc.client.Database("user")
+func (mc *Client) CreateDB(name string) *mongo.Database {
+	return mc.client.Database(name)
 }
 
-func (mc *MongoClient) DisconnectMongoDB() {
+func (mc *Client) DisconnectDB() {
 	if err := mc.client.Disconnect(context.Background()); err != nil {
 		panic(err)
 	}

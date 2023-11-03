@@ -1,27 +1,26 @@
-package validator
+package users
 
 import (
 	"context"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users"
 	"strings"
 )
 
-type userRepo interface {
+type userRepoForValidator interface {
 	ExistsByFirstNameAndLastName(ctx context.Context, firstName string, lastName string) (bool, error)
 }
 
-type UserValidator struct {
-	userRepo userRepo
+type Validator struct {
+	userRepo userRepoForValidator
 }
 
-type validateTask func(ctx context.Context, u users.User, errch chan<- string, dch chan<- struct{})
+type validateTask func(ctx context.Context, u User, errch chan<- string, dch chan<- struct{})
 
-func NewUserValidator(repo userRepo) *UserValidator {
-	return &UserValidator{userRepo: repo}
+func NewValidator(repo userRepoForValidator) *Validator {
+	return &Validator{userRepo: repo}
 }
 
-func (v *UserValidator) Validate(ctx context.Context, user users.User) error {
+func (v *Validator) Validate(ctx context.Context, user User) error {
 	var errorDetails []string
 
 	errch := make(chan string)
@@ -54,14 +53,14 @@ done:
 	return nil
 }
 
-func (v *UserValidator) validateAge(_ context.Context, u users.User, errch chan<- string, dch chan<- struct{}) {
+func (v *Validator) validateAge(_ context.Context, u User, errch chan<- string, dch chan<- struct{}) {
 	if u.Age < 18 {
 		errch <- onboardingerrors.ErrorAgeMinimum
 	}
 	dch <- struct{}{}
 }
 
-func (v *UserValidator) validateEmail(_ context.Context, u users.User, errch chan<- string, dch chan<- struct{}) {
+func (v *Validator) validateEmail(_ context.Context, u User, errch chan<- string, dch chan<- struct{}) {
 	if u.Email == "" {
 		errch <- onboardingerrors.ErrorEmailRequired
 	} else if strings.Contains(u.Email, "@") == false {
@@ -71,7 +70,7 @@ func (v *UserValidator) validateEmail(_ context.Context, u users.User, errch cha
 	dch <- struct{}{}
 }
 
-func (v *UserValidator) validateName(ctx context.Context, u users.User, errch chan<- string, dch chan<- struct{}) {
+func (v *Validator) validateName(ctx context.Context, u User, errch chan<- string, dch chan<- struct{}) {
 	if u.FirstName == "" || u.LastName == "" {
 		errch <- onboardingerrors.ErrorNameRequired
 	} else {

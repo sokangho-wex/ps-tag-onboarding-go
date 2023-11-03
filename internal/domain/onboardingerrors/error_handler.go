@@ -1,9 +1,8 @@
-package httphandler
+package onboardingerrors
 
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors"
 	"net/http"
 )
 
@@ -18,9 +17,9 @@ func ErrorHandler() gin.HandlerFunc {
 		err := c.Errors.Last().Err
 
 		var (
-			badRequestError     *onboardingerrors.BadRequestError
-			userNotFoundError   *onboardingerrors.NotFoundError
-			userValidationError *onboardingerrors.ValidationError
+			badRequestError     *BadRequestError
+			userNotFoundError   *NotFoundError
+			userValidationError *ValidationError
 		)
 
 		switch {
@@ -45,7 +44,7 @@ func ErrorHandler() gin.HandlerFunc {
 		default:
 			c.JSON(
 				http.StatusInternalServerError,
-				errorResponse{Error: onboardingerrors.ErrorUnexpected},
+				errorResponse{Error: ErrorUnexpected},
 			)
 		}
 	}

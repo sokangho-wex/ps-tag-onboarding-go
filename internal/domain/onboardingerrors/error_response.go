@@ -1,4 +1,4 @@
-package httphandler
+package onboardingerrors
 
 type errorResponse struct {
 	Error   string   `json:"error"`

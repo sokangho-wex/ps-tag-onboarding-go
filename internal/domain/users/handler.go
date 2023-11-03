@@ -1,32 +1,31 @@
-package httphandler
+package users
 
 import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users"
 	"net/http"
 )
 
-type userRepo interface {
-	FindByID(ctx context.Context, id string) (users.User, error)
-	SaveUser(ctx context.Context, user users.User) error
+type userRepoForHandler interface {
+	FindByID(ctx context.Context, id string) (User, error)
+	SaveUser(ctx context.Context, user User) error
 }
 
 type validator interface {
-	Validate(ctx context.Context, user users.User) error
+	Validate(ctx context.Context, user User) error
 }
 
-type UserHandler struct {
-	userRepo  userRepo
+type Handler struct {
+	userRepo  userRepoForHandler
 	validator validator
 }
 
-func NewUserHandler(repo userRepo, validator validator) *UserHandler {
-	return &UserHandler{userRepo: repo, validator: validator}
+func NewHandler(repo userRepoForHandler, validator validator) *Handler {
+	return &Handler{userRepo: repo, validator: validator}
 }
 
-func (h *UserHandler) FindUser(c *gin.Context) {
+func (h *Handler) FindUser(c *gin.Context) {
 	id := c.Param("id")
 
 	user, err := h.userRepo.FindByID(c, id)
@@ -38,8 +37,8 @@ func (h *UserHandler) FindUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (h *UserHandler) SaveUser(c *gin.Context) {
-	var user users.User
+func (h *Handler) SaveUser(c *gin.Context) {
+	var user User
 
 	if err := c.BindJSON(&user); err != nil {
 		err = onboardingerrors.NewBadRequestError()

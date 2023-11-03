@@ -1,10 +1,8 @@
-package validator
+package users
 
 import (
 	"context"
 	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -13,14 +11,14 @@ import (
 type UserValidatorTestSuite struct {
 	suite.Suite
 	ctx      context.Context
-	userRepo *persistence.UserRepoMock
-	service  *UserValidator
+	userRepo *UserRepoMock
+	service  *Validator
 }
 
 func (s *UserValidatorTestSuite) SetupTest() {
 	s.ctx = context.TODO()
-	s.userRepo = &persistence.UserRepoMock{}
-	s.service = NewUserValidator(s.userRepo)
+	s.userRepo = &UserRepoMock{}
+	s.service = NewValidator(s.userRepo)
 }
 
 func TestUserValidator(t *testing.T) {
@@ -30,32 +28,32 @@ func TestUserValidator(t *testing.T) {
 func (s *UserValidatorTestSuite) TestValidate_WhenNameIsUnique() {
 	testCases := []struct {
 		name     string
-		input    users.User
+		input    User
 		expected error
 	}{
 		{
 			name:     "should not return error when user is valid",
-			input:    users.NewUser("1", "John", "Doe", "john.doe@test.com", 18),
+			input:    New("1", "John", "Doe", "john.doe@test.com", 18),
 			expected: nil,
 		},
 		{
 			name:     "should return error when age is invalid",
-			input:    users.NewUser("1", "John", "Doe", "john.doe@test.com", 17),
+			input:    New("1", "John", "Doe", "john.doe@test.com", 17),
 			expected: onboardingerrors.NewValidationError([]string{onboardingerrors.ErrorAgeMinimum}),
 		},
 		{
 			name:     "should return error when email is invalid",
-			input:    users.NewUser("1", "John", "Doe", "", 25),
+			input:    New("1", "John", "Doe", "", 25),
 			expected: onboardingerrors.NewValidationError([]string{onboardingerrors.ErrorEmailRequired}),
 		},
 		{
 			name:     "should return error when name is invalid",
-			input:    users.NewUser("1", "qwe", "", "john.doe@test.com", 25),
+			input:    New("1", "qwe", "", "john.doe@test.com", 25),
 			expected: onboardingerrors.NewValidationError([]string{onboardingerrors.ErrorNameRequired}),
 		},
 		{
 			name:     "should return errors when multiple fields are invalid",
-			input:    users.NewUser("1", "", "Doe", "john.doe-test.com", 17),
+			input:    New("1", "", "Doe", "john.doe-test.com", 17),
 			expected: onboardingerrors.NewValidationError([]string{onboardingerrors.ErrorNameRequired, onboardingerrors.ErrorAgeMinimum, onboardingerrors.ErrorEmailFormat}),
 		},
 	}
@@ -79,7 +77,7 @@ func (s *UserValidatorTestSuite) TestValidate_WhenNameIsUnique() {
 }
 
 func (s *UserValidatorTestSuite) TestValidate_WhenNameIsNotUnique() {
-	user := users.NewUser("1", "John", "Doe", "john.doe@test.com", 18)
+	user := New("1", "John", "Doe", "john.doe@test.com", 18)
 
 	s.userRepo.
 		On("ExistsByFirstNameAndLastName", s.ctx, user.FirstName, user.LastName).
