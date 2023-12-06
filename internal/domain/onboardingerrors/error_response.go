@@ -1,6 +1,6 @@
-package models
+package onboardingerrors
 
-type ErrorResponse struct {
+type errorResponse struct {
 	Error   string   `json:"error"`
 	Details []string `json:"details,omitempty"`
 }

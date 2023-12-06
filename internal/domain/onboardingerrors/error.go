@@ -1,8 +1,8 @@
-package errs
+package onboardingerrors
 
 import "fmt"
 
-var (
+const (
 	ErrorAgeMinimum       = "User does not meet minimum age requirement"
 	ErrorEmailFormat      = "User email must be properly formatted"
 	ErrorEmailRequired    = "User email required"

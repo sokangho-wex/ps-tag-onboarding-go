@@ -1,8 +1,7 @@
-package persistence
+package users
 
 import (
 	"context"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -10,12 +9,12 @@ type UserRepoMock struct {
 	mock.Mock
 }
 
-func (m *UserRepoMock) FindByID(ctx context.Context, id string) (models.User, error) {
+func (m *UserRepoMock) FindByID(ctx context.Context, id string) (User, error) {
 	args := m.Called(ctx, id)
-	return args.Get(0).(models.User), args.Error(1)
+	return args.Get(0).(User), args.Error(1)
 }
 
-func (m *UserRepoMock) SaveUser(ctx context.Context, user models.User) error {
+func (m *UserRepoMock) SaveUser(ctx context.Context, user User) error {
 	args := m.Called(ctx, user)
 	return args.Error(0)
 }

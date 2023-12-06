@@ -2,33 +2,35 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/handlers/validators"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/persistence"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/onboardingerrors"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/domain/users"
+	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/mongo"
 	"log"
 	"os"
 )
 
+const userDB = "user"
+
 func main() {
 	port := os.Getenv("APP_PORT")
 	if port == "" {
-		port = "8080"
+		log.Fatal("App unable to start, APP_PORT environment variable is not set")
 	}
 	uri := os.Getenv("MONGO_CONNECTION_STRING")
 	if uri == "" {
-		uri = "mongodb://root:password@localhost:27017"
+		log.Fatal("App unable to start, MONGO_CONNECTION_STRING environment variable is not set")
 	}
 
-	mongoClient := persistence.NewMongoClient(uri)
-	db := mongoClient.NewMongoDB()
-	defer mongoClient.DisconnectMongoDB()
+	mongoClient := mongo.NewClient(uri)
+	db := mongoClient.CreateDB(userDB)
+	defer mongoClient.DisconnectDB()
 
-	userRepo := persistence.NewUserRepo(db)
-	userValidator := validators.NewUserValidator(userRepo)
-	userHandler := handlers.NewUserHandler(userRepo, userValidator)
+	userRepo := mongo.NewUserRepo(db)
+	userValidator := users.NewValidator(userRepo)
+	userHandler := users.NewHandler(userRepo, userValidator)
 
 	router := gin.Default()
-	router.Use(handlers.ErrorHandler())
+	router.Use(onboardingerrors.ErrorHandler())
 	router.GET("/find/:id", userHandler.FindUser)
 	router.POST("/save", userHandler.SaveUser)
 

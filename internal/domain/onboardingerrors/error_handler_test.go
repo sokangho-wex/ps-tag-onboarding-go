@@ -1,11 +1,9 @@
-package handlers
+package onboardingerrors
 
 import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models"
-	"github.com/sokangho-wex/ps-tag-onboarding-go/internal/models/errs"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -13,35 +11,35 @@ import (
 )
 
 func TestErrorHandler_WhenGivenAnErrorType_ReturnsCorrectStatusCodeAndMessage(t *testing.T) {
-	var testCases = []struct {
+	testCases := []struct {
 		name       string
 		error      error
 		statusCode int
-		expected   models.ErrorResponse
+		expected   errorResponse
 	}{
 		{
 			name:       "should return 400 error response when getting BadRequestError",
-			error:      errs.NewBadRequestError(),
+			error:      NewBadRequestError(),
 			statusCode: http.StatusBadRequest,
-			expected:   models.ErrorResponse{Error: errs.ErrorBadRequest},
+			expected:   errorResponse{Error: ErrorBadRequest},
 		},
 		{
 			name:       "should return 400 error response when getting UserValidationError",
-			error:      errs.NewValidationError([]string{errs.ErrorEmailFormat, errs.ErrorAgeMinimum}),
+			error:      NewValidationError([]string{ErrorEmailFormat, ErrorAgeMinimum}),
 			statusCode: http.StatusBadRequest,
-			expected:   models.ErrorResponse{Error: errs.ErrorValidationFailed, Details: []string{errs.ErrorEmailFormat, errs.ErrorAgeMinimum}},
+			expected:   errorResponse{Error: ErrorValidationFailed, Details: []string{ErrorEmailFormat, ErrorAgeMinimum}},
 		},
 		{
 			name:       "should return 404 error response when getting UserNotFoundError",
-			error:      errs.NewNotFoundError(),
+			error:      NewNotFoundError(),
 			statusCode: http.StatusNotFound,
-			expected:   models.ErrorResponse{Error: errs.ErrorUserNotFound},
+			expected:   errorResponse{Error: ErrorUserNotFound},
 		},
 		{
 			name:       "should return 500 error response when getting UnexpectedError",
 			error:      errors.New("something unexpected"),
 			statusCode: http.StatusInternalServerError,
-			expected:   models.ErrorResponse{Error: errs.ErrorUnexpected},
+			expected:   errorResponse{Error: ErrorUnexpected},
 		},
 	}
 
@@ -52,7 +50,7 @@ func TestErrorHandler_WhenGivenAnErrorType_ReturnsCorrectStatusCodeAndMessage(t 
 			_ = ctx.Error(tc.error)
 
 			ErrorHandler()(ctx)
-			var actualResponse models.ErrorResponse
+			var actualResponse errorResponse
 
 			assert.Equal(t, tc.statusCode, response.Code)
 			assert.NoError(t, json.Unmarshal(response.Body.Bytes(), &actualResponse))
